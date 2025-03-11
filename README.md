@@ -15,97 +15,89 @@ Explore the [examples](examples) directory to see the SDK in action, and read ou
 
 ## Get started
 
-1. Set up your Python environment
+1. Set up your Node.js environment
 
 ```
-python -m venv env
-source env/bin/activate
+npm install
 ```
 
 2. Install Agents SDK
 
 ```
-pip install openai-agents
+npm install openai-agents
 ```
 
 ## Hello world example
 
-```python
-from agents import Agent, Runner
+```typescript
+import { Agent, Runner } from 'agents';
 
-agent = Agent(name="Assistant", instructions="You are a helpful assistant")
+const agent = new Agent({ name: "Assistant", instructions: "You are a helpful assistant" });
 
-result = Runner.run_sync(agent, "Write a haiku about recursion in programming.")
-print(result.final_output)
+Runner.run(agent, "Write a haiku about recursion in programming.").then(result => {
+    console.log(result.finalOutput);
+});
 
-# Code within the code,
-# Functions calling themselves,
-# Infinite loop's dance.
+// Code within the code,
+// Functions calling themselves,
+// Infinite loop's dance.
 ```
 
 (_If running this, ensure you set the `OPENAI_API_KEY` environment variable_)
 
 ## Handoffs example
 
-```py
-from agents import Agent, Runner
-import asyncio
+```typescript
+import { Agent, Runner } from 'agents';
 
-spanish_agent = Agent(
-    name="Spanish agent",
-    instructions="You only speak Spanish.",
-)
+const spanishAgent = new Agent({
+    name: "Spanish agent",
+    instructions: "You only speak Spanish.",
+});
 
-english_agent = Agent(
-    name="English agent",
-    instructions="You only speak English",
-)
+const englishAgent = new Agent({
+    name: "English agent",
+    instructions: "You only speak English",
+});
 
-triage_agent = Agent(
-    name="Triage agent",
-    instructions="Handoff to the appropriate agent based on the language of the request.",
-    handoffs=[spanish_agent, english_agent],
-)
+const triageAgent = new Agent({
+    name: "Triage agent",
+    instructions: "Handoff to the appropriate agent based on the language of the request.",
+    handoffs: [spanishAgent, englishAgent],
+});
 
-
-async def main():
-    result = await Runner.run(triage_agent, input="Hola, ¿cómo estás?")
-    print(result.final_output)
-    # ¡Hola! Estoy bien, gracias por preguntar. ¿Y tú, cómo estás?
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+Runner.run(triageAgent, "Hola, ¿cómo estás?").then(result => {
+    console.log(result.finalOutput);
+    // ¡Hola! Estoy bien, gracias por preguntar. ¿Y tú, cómo estás?
+});
 ```
 
 ## Functions example
 
-```python
-import asyncio
+```typescript
+import { Agent, Runner, functionTool } from 'agents';
 
-from agents import Agent, Runner, function_tool
+const getWeather = functionTool({
+    name: "getWeather",
+    description: "Get the weather for a city",
+    parameters: {
+        city: { type: "string" }
+    },
+    handler: (params) => {
+        return `The weather in ${params.city} is sunny.`;
+    }
+});
 
+const agent = new Agent({
+    name: "Hello world",
+    instructions: "You are a helpful agent.",
+    tools: [getWeather],
+});
 
-@function_tool
-def get_weather(city: str) -> str:
-    return f"The weather in {city} is sunny."
-
-
-agent = Agent(
-    name="Hello world",
-    instructions="You are a helpful agent.",
-    tools=[get_weather],
-)
-
-
-async def main():
-    result = await Runner.run(agent, input="What's the weather in Tokyo?")
-    print(result.final_output)
-    # The weather in Tokyo is sunny.
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+Runner.run(agent, "What's the weather in Tokyo?").then(result => {
+    console.log(result.finalOutput);
+    // The weather in Tokyo is sunny.
+});
 ```
 
 ## The agent loop
@@ -118,19 +110,19 @@ When you call `Runner.run()`, we run a loop until we get a final output.
 4. If the response has a handoff, we set the agent to the new agent and go back to step 1.
 5. We process the tool calls (if any) and append the tool responses messsages. Then we go to step 1.
 
-There is a `max_turns` parameter that you can use to limit the number of times the loop executes.
+There is a `maxTurns` parameter that you can use to limit the number of times the loop executes.
 
 ### Final output
 
 Final output is the last thing the agent produces in the loop.
 
-1.  If you set an `output_type` on the agent, the final output is when the LLM returns something of that type. We use [structured outputs](https://platform.openai.com/docs/guides/structured-outputs) for this.
-2.  If there's no `output_type` (i.e. plain text responses), then the first LLM response without any tool calls or handoffs is considered as the final output.
+1.  If you set an `outputType` on the agent, the final output is when the LLM returns something of that type. We use [structured outputs](https://platform.openai.com/docs/guides/structured-outputs) for this.
+2.  If there's no `outputType` (i.e. plain text responses), then the first LLM response without any tool calls or handoffs is considered as the final output.
 
 As a result, the mental model for the agent loop is:
 
-1. If the current agent has an `output_type`, the loop runs until the agent produces structured output matching that type.
-2. If the current agent does not have an `output_type`, the loop runs until the current agent produces a message without any tool calls/handoffs.
+1. If the current agent has an `outputType`, the loop runs until the agent produces structured output matching that type.
+2. If the current agent does not have an `outputType`, the loop runs until the current agent produces a message without any tool calls/handoffs.
 
 ## Common agent patterns
 
@@ -158,8 +150,8 @@ make sync
 
 ```
 make tests  # run tests
-make mypy   # run typechecker
 make lint   # run linter
+make build  # build TypeScript code
 ```
 
 ## Acknowledgements
