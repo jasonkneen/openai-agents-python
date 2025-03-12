@@ -1,37 +1,27 @@
 .PHONY: sync
 sync:
-	uv sync --all-extras --all-packages --group dev
+	npm install
 
 .PHONY: format
-format: 
-	uv run ruff format
+format:
+	npx prettier --write .
 
 .PHONY: lint
-lint: 
-	uv run ruff check
+lint:
+	npx eslint .
 
-.PHONY: mypy
-mypy: 
-	uv run mypy .
+.PHONY: build
+build:
+	npx tsc
 
 .PHONY: tests
-tests: 
-	uv run pytest 
-
-.PHONY: old_version_tests
-old_version_tests: 
-	UV_PROJECT_ENVIRONMENT=.venv_39 uv run --python 3.9 -m pytest
-	UV_PROJECT_ENVIRONMENT=.venv_39 uv run --python 3.9 -m mypy .
-
-.PHONY: build-docs
-build-docs:
-	uv run mkdocs build
+tests:
+	npx jest
 
 .PHONY: serve-docs
 serve-docs:
-	uv run mkdocs serve
+	npx serve docs
 
 .PHONY: deploy-docs
 deploy-docs:
-	uv run mkdocs gh-deploy --force --verbose
-	
+	npx gh-pages -d docs
